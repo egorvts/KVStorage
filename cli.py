@@ -15,6 +15,8 @@ def main():
         set(args, storage)
     elif command == "get":
         get(args, storage)
+    elif command == "delete":
+        delete(args, storage)
     else:
         print("Invalid command. Available commands: get, set")
         return
@@ -45,6 +47,19 @@ def get(args, storage):
     value = storage.get(key)
     if value is not None:
         print(f"{key} = {value}")
+    else:
+        print(f"'{key}' not found in storage.")
+
+
+def delete(args, storage):
+    if len(args) != 3:
+        print("Usage: python storage.py <storage> delete <key>")
+        return
+
+    key = args[2]
+    value = storage.delete(key)
+    if value is not None:
+        print(f"'{key}' was deleted")
     else:
         print(f"'{key}' not found in storage.")
 

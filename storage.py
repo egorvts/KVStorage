@@ -21,3 +21,11 @@ class KVStorage:
 
     def get(self, key):
         return self.index.get(key, None)
+    
+    def delete(self, key):
+        value = self.index.pop(key, None)
+        if value is not None:
+            with open(self.storage_name, "w", encoding="utf-8") as f:
+                for k, v in self.index.items():
+                    f.write(f"{k}={v}\n")
+        return value
