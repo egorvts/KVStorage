@@ -1,5 +1,5 @@
 class KVStorage:
-    def __init__(self, storage_name="storage.kvs"):
+    def __init__(self, storage_name="storage.kvs", index=None):
         self.storage_name = storage_name
         self.index = {}
         self._load()
