@@ -1,4 +1,4 @@
-from .base import BaseRequest
+from .base_request import BaseRequest
 
 
 class SetRequest(BaseRequest):

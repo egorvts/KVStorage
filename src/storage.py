@@ -21,7 +21,7 @@ class KVStorage:
 
     def get(self, key):
         return self.index.get(key, None)
-    
+
     def delete(self, key):
         value = self.index.pop(key, None)
         if value is not None:
