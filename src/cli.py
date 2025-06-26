@@ -14,6 +14,11 @@ def main():
                         "get", "set", "delete"], help="Command to execute on the storage")
     parser.add_argument("items", nargs="+",
                         help="List of keys or key=value pairs depending on command")
+    parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Print detailed output (default: no output)"
+    )
 
     args = parser.parse_args()
 

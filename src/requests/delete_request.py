@@ -5,15 +5,17 @@ class DeleteRequest(BaseRequest):
     def validate_args(self):
         items = self.args.items
 
-        if len(items) != 1:
-            raise ValueError("Usage: python storage.py <storage> delete <key>")
+        if len(items) < 1:
+            raise ValueError("Invalid arguments: at least one key is required")
 
-        self.key = items[0]
+        self.keys = items
 
     def execute(self):
-        value = self.storage.delete(self.key)
+        for key in self.keys:
+            value = self.storage.delete(key)
 
-        if value is not None:
-            print(f"'{self.key}' was deleted")
-        else:
-            print(f"'{self.key}' not found in storage")
+            if value is not None:
+                if self.args.verbose:
+                    print(f"'{key}' was deleted")
+            else:
+                print(f"'{key}' not found in storage")

@@ -6,7 +6,7 @@ class GetRequest(BaseRequest):
         items = self.args.items
 
         if len(items) != 1:
-            raise ValueError("Usage: <storage> get <key>")
+            raise ValueError("Invalid arguments: exactly one key is required")
 
         self.key = items[0]
 
@@ -14,6 +14,7 @@ class GetRequest(BaseRequest):
         value = self.storage.get(self.key)
 
         if value is not None:
-            print(f"{self.key} = {value}")
+            if self.args.verbose:
+                print(f"{self.key} = {value}")
         else:
             print(f"'{self.key}' not found in storage")
