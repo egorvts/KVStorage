@@ -2,6 +2,8 @@ import hashlib
 import json
 import os
 
+from collections import OrderedDict
+
 
 class KVStorage:
     """Key-value storage class
@@ -9,12 +11,19 @@ class KVStorage:
     Stores key-value pairs in a directory using multiple bucket files. Each bucket is a separate JSON file. Keys are hashed to determine their bucket
     """
 
-    def __init__(self, storage_name="kvstorage", buckets_count=16):
+    def __init__(
+        self, storage_name="kvstorage", buckets_count=16, max_cached_buckets=2
+    ):
         """Initialize the key-value storage
 
         Args:
             storage_name (str): The name of the storage directory (default: "kvstorage")
             buckets_count (int): The number of buckets to use for storage (default: 16)
+            max_cached_buckets (int): The maximum number of cached buckets (default: 2)
+
+        Raises:
+            ValueError: If storage_name is empty/whitespace, buckets_count <= 0, or max_cached_buckets <= 0
+            FileExistsError: If storage_name exists and is not a directory
         """
 
         if not storage_name or not storage_name.strip():
@@ -23,14 +32,18 @@ class KVStorage:
         if buckets_count <= 0:
             raise ValueError("Invalid buckets count")
 
+        if max_cached_buckets <= 0:
+            raise ValueError("Invalid max cached buckets count")
+
         self.storage_name = storage_name
         self.buckets_count = buckets_count
+        self.max_cached_buckets = max_cached_buckets
 
         if os.path.exists(self.storage_name) and not os.path.isdir(self.storage_name):
             raise FileExistsError(f"{self.storage_name} exists and is not a directory")
         os.makedirs(self.storage_name, exist_ok=True)
 
-        self.bucket_cache = {}
+        self.bucket_cache = OrderedDict()
 
     def _bucket_path(self, bucket_id: int) -> str:
         """Get the file path for a specific bucket
@@ -65,10 +78,19 @@ class KVStorage:
 
         Returns:
             dict[str, any]: The contents of the bucket
+
+        Note:
+            If the bucket file has invalid JSON, returns an empty dictionary
         """
 
         if bucket_id in self.bucket_cache:
+            # Mark as recently used
+            self.bucket_cache.move_to_end(bucket_id)
+
             return self.bucket_cache[bucket_id]
+
+        if len(self.bucket_cache) >= self.max_cached_buckets:
+            self._save_bucket(*self.bucket_cache.popitem(last=False))
 
         cache = {}
         path = self._bucket_path(bucket_id)
@@ -84,14 +106,17 @@ class KVStorage:
         self.bucket_cache[bucket_id] = cache
         return cache
 
-    def _save_bucket(self, bucket_id: int) -> None:
+    def _save_bucket(
+        self, bucket_id: int, bucket_content: dict[str, any] = None
+    ) -> None:
         """Save a bucket to file system
 
         Args:
             bucket_id (int): The ID of the bucket to save
+            bucket_content (dict[str, any], optional): The contents of the bucket to save (if None, the cached content will be used, defaults to None)
         """
 
-        cache = self.bucket_cache.get(bucket_id, {})
+        cache = bucket_content or self.bucket_cache.get(bucket_id, {})
         path = self._bucket_path(bucket_id)
 
         with open(path, "w", encoding="utf-8") as f:
@@ -103,6 +128,9 @@ class KVStorage:
         Args:
             key (str): The key to set
             value (any): The value to set
+
+        Raises:
+            ValueError: If the key is empty, whitespace, or not a string
         """
 
         if not key or not key.strip():
@@ -111,16 +139,22 @@ class KVStorage:
         if not isinstance(key, str):
             raise ValueError("Key must be a string")
 
-        id = self._get_bucket_id(key)
-        bucket = self._load_bucket(id)
+        bucket_id = self._get_bucket_id(key)
+        bucket = self._load_bucket(bucket_id)
         bucket[key] = value
-        self._save_bucket(id)
+        self._save_bucket(bucket_id)
 
     def get(self, key: str) -> any:
         """Get a value from the storage
 
         Args:
             key (str): The key to get
+
+        Returns:
+            any: Value associated with the key (None if not found)
+
+        Note:
+            No key validation
         """
 
         id = self._get_bucket_id(key)
@@ -132,6 +166,9 @@ class KVStorage:
 
         Args:
             key (str): The key to delete
+
+        Returns:
+            any: Value associated with the key (None if not found)
         """
 
         id = self._get_bucket_id(key)
