@@ -6,6 +6,8 @@ from requests.delete_request import DeleteRequest
 
 
 def main():
+    """Entry point for the KVStorage CLI"""
+
     parser = argparse.ArgumentParser(
         prog="KV-Storage",
         description="Tool to create storages of key-value pairs",
