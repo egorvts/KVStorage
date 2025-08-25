@@ -7,7 +7,8 @@ class SetRequest(BaseRequest):
 
         if len(items) < 1 or not all("=" in item for item in items):
             raise ValueError(
-                "Invalid arguments: at least one key=value pair is required")
+                "Invalid arguments: at least one key=value pair is required"
+            )
 
         self.pairs = [item.split("=", 1) for item in items]
 

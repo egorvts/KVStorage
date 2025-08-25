@@ -7,17 +7,25 @@ from requests.delete_request import DeleteRequest
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="KV-Storage", description="Tool to create storages of key-value pairs", epilog="© 2025 Egor Vetoshkin")
+        prog="KV-Storage",
+        description="Tool to create storages of key-value pairs",
+        epilog="© 2025 Egor Vetoshkin",
+    )
 
     parser.add_argument("storage", help="Name of the storage to use")
-    parser.add_argument("command", choices=[
-                        "get", "set", "delete"], help="Command to execute on the storage")
-    parser.add_argument("items", nargs="+",
-                        help="List of keys or key=value pairs depending on command")
     parser.add_argument(
-        "-v", "--verbose",
+        "command",
+        choices=["get", "set", "delete"],
+        help="Command to execute on the storage",
+    )
+    parser.add_argument(
+        "items", nargs="+", help="List of keys or key=value pairs depending on command"
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
         action="store_true",
-        help="Print detailed output (default: no output)"
+        help="Print detailed output (default: no output)",
     )
 
     args = parser.parse_args()
