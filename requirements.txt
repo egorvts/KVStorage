@@ -1,4 +1,0 @@
-click==8.2.1
-deptry==0.23.1
-packaging==25.0
-requirements-parser==0.13.0

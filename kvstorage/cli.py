@@ -1,5 +1,5 @@
 import argparse
-from storage import KVStorage
+from kvstorage.storage import KVStorage
 from requests.set_request import SetRequest
 from requests.get_request import GetRequest
 from requests.delete_request import DeleteRequest

@@ -5,6 +5,12 @@ import os
 from collections import OrderedDict
 
 
+class KeyNotFoundError(Exception):
+    """Raised when a key is not found in storage"""
+
+    pass
+
+
 class KVStorage:
     """Key-value storage class
 
@@ -159,7 +165,10 @@ class KVStorage:
 
         id = self._get_bucket_id(key)
         bucket = self._load_bucket(id)
-        return bucket.get(key)
+
+        if key not in bucket:
+            raise KeyNotFoundError("Key not found")
+        return bucket[key]
 
     def delete(self, key: str) -> any:
         """Delete a key-value pair from the storage

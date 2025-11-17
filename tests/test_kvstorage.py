@@ -2,7 +2,7 @@ import os
 import tempfile
 import pytest
 import subprocess
-from src.storage import KVStorage
+from kvstorage.storage import KVStorage, KeyNotFoundError
 
 
 @pytest.fixture
@@ -12,49 +12,54 @@ def temp_storage():
 
 
 def test_set(temp_storage):
-    os.system(f"python3 src/cli.py {temp_storage} set name=Egor")
+    os.system(f"python3 kvstorage/cli.py {temp_storage} set name=Egor")
 
-    store = KVStorage(temp_storage)
-    assert store.get("name") == "Egor"
+    storage = KVStorage(temp_storage)
+    assert storage.get("name") == "Egor"
 
 
 def test_set_multiple(temp_storage):
     os.system(
-        f"python3 src/cli.py {temp_storage} set name=Egor age=18 city=Yekaterinburg"
+        f"python3 kvstorage/cli.py {temp_storage} set name=Egor age=19 city=Yekaterinburg"
     )
 
-    store = KVStorage(temp_storage)
-    assert store.get("name") == "Egor"
-    assert store.get("age") == "18"
-    assert store.get("city") == "Yekaterinburg"
+    storage = KVStorage(temp_storage)
+    assert storage.get("name") == "Egor"
+    assert storage.get("age") == "19"
+    assert storage.get("city") == "Yekaterinburg"
 
 
 def test_get_verbose(temp_storage):
-    os.system(f"python3 src/cli.py {temp_storage} set name=Egor")
+    os.system(f"python3 kvstorage/cli.py {temp_storage} set name=Egor")
 
-    result = os.popen(f"python3 src/cli.py -v {temp_storage} get name").read().strip()
+    result = (
+        os.popen(f"python3 kvstorage/cli.py -v {temp_storage} get name").read().strip()
+    )
     assert result == "name = Egor"
 
 
 def test_delete(temp_storage):
-    os.system(f"python3 src/cli.py {temp_storage} set name=Egor")
-    os.system(f"python3 src/cli.py {temp_storage} delete name")
+    os.system(f"python3 kvstorage/cli.py {temp_storage} set name=Egor")
+    os.system(f"python3 kvstorage/cli.py {temp_storage} delete name")
 
-    result = os.popen(f"python3 src/cli.py {temp_storage} get name").read().strip()
-    assert result == "'name' not found in storage"
+    storage = KVStorage(temp_storage)
+    with pytest.raises(KeyNotFoundError):
+        storage.get("name")
 
 
 def test_special_characters(temp_storage):
     subprocess.run(
-        ["python3", "src/cli.py", temp_storage, "set", "key®=!@#$%^&*()"], check=True
+        ["python3", "kvstorage/cli.py", temp_storage, "set", "key®=!@#$%^&*()"],
+        check=True,
     )
 
-    store = KVStorage(temp_storage)
-    assert store.get("key®") == "!@#$%^&*()"
+    storage = KVStorage(temp_storage)
+    assert storage.get("key®") == "!@#$%^&*()"
 
     subprocess.run(
-        ["python3", "src/cli.py", temp_storage, "delete", "key®"], check=True
+        ["python3", "kvstorage/cli.py", temp_storage, "delete", "key®"], check=True
     )
 
-    store = KVStorage(temp_storage)
-    assert store.get("key®") is None
+    storage = KVStorage(temp_storage)
+    with pytest.raises(KeyNotFoundError):
+        storage.get("key®")
