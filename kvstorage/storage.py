@@ -3,6 +3,7 @@ import json
 import os
 
 from collections import OrderedDict
+from typing import Any
 
 
 class KeyNotFoundError(Exception):
@@ -76,7 +77,7 @@ class KVStorage:
         hash = hashlib.sha256(key.encode("utf-8")).hexdigest()
         return int(hash, 16) % self.buckets_count
 
-    def _load_bucket(self, bucket_id: int) -> dict[str, any]:
+    def _load_bucket(self, bucket_id: int) -> dict[str, Any]:
         """Load a bucket from file or cache
 
         Args:
@@ -113,7 +114,7 @@ class KVStorage:
         return cache
 
     def _save_bucket(
-        self, bucket_id: int, bucket_content: dict[str, any] = None
+        self, bucket_id: int, bucket_content: dict[str, Any] = None
     ) -> None:
         """Save a bucket to file system
 
@@ -128,7 +129,7 @@ class KVStorage:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(cache, f, ensure_ascii=False, indent=2)
 
-    def set(self, key: str, value: any) -> None:
+    def set(self, key: str, value: Any) -> None:
         """Set a key-value pair in the storage
 
         Args:
@@ -150,7 +151,7 @@ class KVStorage:
         bucket[key] = value
         self._save_bucket(bucket_id)
 
-    def get(self, key: str) -> any:
+    def get(self, key: str) -> Any:
         """Get a value from the storage
 
         Args:
@@ -170,7 +171,7 @@ class KVStorage:
             raise KeyNotFoundError("Key not found")
         return bucket[key]
 
-    def delete(self, key: str) -> any:
+    def delete(self, key: str) -> Any:
         """Delete a key-value pair from the storage
 
         Args:
