@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, status
 import uvicorn
 from kvstorage.storage import KVStorage, KeyNotFoundError
-from models import KVEntry
+from server.models import KVEntry
 
 storage = KVStorage()
 
@@ -163,4 +163,4 @@ async def delete(key: str):
 
 
 if __name__ == "__main__":
-    uvicorn.run("kvstorage.server.main:app", host="0.0.0.0", port=2310, reload=True)
+    uvicorn.run("server.main:app", host="0.0.0.0", port=2310, reload=True)

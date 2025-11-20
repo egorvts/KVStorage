@@ -1,6 +1,6 @@
 import tempfile
 import pytest
-from kvstorage.storage import KVStorage, KeyNotFoundError
+from src.kvstorage.storage import KVStorage, KeyNotFoundError
 
 
 @pytest.fixture
