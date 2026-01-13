@@ -186,3 +186,77 @@ class KVStorage:
         value = bucket.pop(key, None)
         self._save_bucket(id)
         return value
+
+    def keys(self) -> list[str]:
+        """Get all keys in the storage
+
+        Returns:
+            list[str]: List of all keys in the storage
+        """
+        all_keys = []
+        for bucket_id in range(self.buckets_count):
+            bucket = self._load_bucket(bucket_id)
+            all_keys.extend(bucket.keys())
+        return all_keys
+
+    def items(self) -> list[tuple[str, Any]]:
+        """Get all key-value pairs in the storage
+
+        Returns:
+            list[tuple[str, Any]]: List of all key-value pairs
+        """
+        all_items = []
+        for bucket_id in range(self.buckets_count):
+            bucket = self._load_bucket(bucket_id)
+            all_items.extend(bucket.items())
+        return all_items
+
+    def exists(self, key: str) -> bool:
+        """Check if a key exists in the storage
+
+        Args:
+            key (str): The key to check
+
+        Returns:
+            bool: True if key exists, False otherwise
+        """
+        bucket_id = self._get_bucket_id(key)
+        bucket = self._load_bucket(bucket_id)
+        return key in bucket
+
+    def flush(self) -> None:
+        """Flush all cached buckets to disk"""
+        for bucket_id, bucket_content in list(self.bucket_cache.items()):
+            self._save_bucket(bucket_id, bucket_content)
+        self.bucket_cache.clear()
+
+    def rebalance(self, new_buckets_count: int) -> int:
+        """Rebalance storage with a new number of buckets
+
+        Args:
+            new_buckets_count (int): The new number of buckets
+
+        Returns:
+            int: Number of items rebalanced
+
+        Raises:
+            ValueError: If new_buckets_count <= 0
+        """
+        if new_buckets_count <= 0:
+            raise ValueError("Invalid buckets count")
+
+        all_items = self.items()
+        self.flush()
+
+        for bucket_id in range(self.buckets_count):
+            path = self._bucket_path(bucket_id)
+            if os.path.exists(path):
+                os.remove(path)
+
+        self.buckets_count = new_buckets_count
+
+        for key, value in all_items:
+            self.set(key, value)
+
+        self.flush()
+        return len(all_items)

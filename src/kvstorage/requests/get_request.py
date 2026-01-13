@@ -1,4 +1,5 @@
 from .base_request import BaseRequest
+from ..storage import KeyNotFoundError
 
 
 class GetRequest(BaseRequest):
@@ -11,10 +12,9 @@ class GetRequest(BaseRequest):
         self.key = items[0]
 
     def execute(self):
-        value = self.storage.get(self.key)
-
-        if value is not None:
+        try:
+            value = self.storage.get(self.key)
             if self.args.verbose:
                 print(f"{self.key} = {value}")
-        else:
+        except KeyNotFoundError:
             print(f"'{self.key}' not found in storage")
